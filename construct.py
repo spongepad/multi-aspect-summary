@@ -23,7 +23,7 @@ def load_data(split, n_examples):
 
 
 def main(split):
-    train_documents = load_data(split='train', n_examples=None)
+    #train_documents = load_data(split='train', n_examples=None)
     supervisor = Supervisor()
     #supervisor.build_tfidf_vectorizer(documents=train_documents)
     pickle.dump(supervisor, open('supervisions/supervisor.pickle', 'wb'))
