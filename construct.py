@@ -23,16 +23,14 @@ def load_data(split, n_examples):
 
 
 def main(split):
-    train_documents = load_data(split='train', n_examples=None)
     supervisor = Supervisor()
-    #supervisor.build_tfidf_vectorizer(documents=train_documents)
     pickle.dump(supervisor, open('supervisions/supervisor.pickle', 'wb'))
     print('supervisor initialized.')
 
     documents = load_data(split=split, n_examples=None)
 
-    for l in range(0, len(documents), 10000):
-        r = min(len(documents), l + 10000)
+    for l in range(0, len(documents), len(documents)):
+        r = len(documents)
 
         if os.path.exists(f'{split}_{l}-{r}.json'):
             continue
@@ -43,7 +41,7 @@ def main(split):
         prog_bar = tqdm(documents[l:r], total=len(documents[l:r]))
         for doc_id, (document) in enumerate(prog_bar):
             in_text_aspects = supervisor.get_aspects(document)
-
+            
             dataset.append({
                 'doc_id': doc_id,
                 'document': document,
@@ -63,11 +61,10 @@ def main(split):
                     dataset[-1]['aspect_summaries'].append({
                         'aspect': aspect,
                         'summary': guessed_summary['aspect_summary'],
-                        'reasonings': guessed_summary['reasonings'],
                         'rel_words': rel_words
                     })
 
-            json.dump(dataset, open(f'data/earphone/{split}_{l}-{r}.json', 'w'), indent=4, ensure_ascii=False)
+        json.dump(dataset, open(f'data/earphone/{split}_{l}-{r}.json', 'w'), indent=4, ensure_ascii=False)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,112 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x00007fff9ae7e228, pid=17508, tid=18668
+#
+# JRE version: Java(TM) SE Runtime Environment (12.0.1+12) (build 12.0.1+12)
+# Java VM: Java HotSpot(TM) 64-Bit Server VM (12.0.1+12, mixed mode, sharing, tiered, compressed oops, g1 gc, windows-amd64)
+# Problematic frame:
+# C  [_jpype.cp36-win_amd64.pyd+0x2e228]  JPypeException::convertPythonToJava+0x158
+#
+# No core dump will be written. Minidumps are not enabled by default on client versions of Windows
+#
+# If you would like to submit a bug report, please visit:
+#   http://bugreport.java.com/bugreport/crash.jsp
+# The crash happened outside the Java Virtual Machine in native code.
+# See problematic frame for where to report the bug.
+#
+
+---------------  S U M M A R Y ------------
+
+Command Line: -Dfile.encoding=UTF8 -ea -Xmx1024m 
+
+Host: AMD Ryzen 5 2600 Six-Core Processor            , 12 cores, 15G,  Windows 10 , 64 bit Build 19041 (10.0.19041.928)
+Time: Thu May  6 21:44:02 2021 대한민국 표준시 elapsed time: 9 seconds (0d 0h 0m 9s)
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x0000012fff153000):  JavaThread "main" [_thread_in_native, id=18668, stack(0x0000000266e00000,0x0000000266ff0000)]
+
+Stack: [0x0000000266e00000,0x0000000266ff0000],  sp=0x0000000266fd9ce0,  free space=1895k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+C  [_jpype.cp36-win_amd64.pyd+0x2e228]  JPypeException::convertPythonToJava+0x158  (jp_exception.cpp:266)
+C  [_jpype.cp36-win_amd64.pyd+0x2d60a]  JPypeException::toJava+0x1fa  (jp_exception.cpp:432)
+C  [_jpype.cp36-win_amd64.pyd+0x5faf9]  `JPTypeFactory_rethrow'::`1'::catch$0+0x1d  (jp_typefactory.cpp:50)
+C  [VCRUNTIME140.dll+0x1030]
+C  [VCRUNTIME140.dll+0x32f8]
+C  [ntdll.dll+0xa1406]
+C  [_jpype.cp36-win_amd64.pyd+0x42b4b]  JPTypeFactory_rethrow+0x1b  (jp_typefactory.cpp:47)
+C  [_jpype.cp36-win_amd64.pyd+0x5facd]  `JPTypeFactory_newWrapper'::`1'::catch$4+0x16  (jp_typefactory.cpp:97)
+C  [VCRUNTIME140.dll+0x1030]
+C  [VCRUNTIME140.dll+0x32f8]
+C  [ntdll.dll+0xa1406]
+C  [_jpype.cp36-win_amd64.pyd+0x42ae2]  JPTypeFactory_newWrapper+0x72  (jp_typefactory.cpp:97)
+C  0x0000012f98c8f0f7
+
+Java frames: (J=compiled Java code, j=interpreted, Vv=VM code)
+j  org.jpype.manager.TypeFactoryNative.newWrapper(JJ)V+0
+j  org.jpype.JPypeContext.newWrapper(J)V+16
+v  ~StubRoutines::call_stub
+
+siginfo: EXCEPTION_ACCESS_VIOLATION (0xc0000005), writing address 0x0000000000000000
+
+
+Register to memory mapping:
+
+RIP=0x00007fff9ae7e228 _jpype.cp36-win_amd64.pyd::JPypeException::convertPythonToJava + 0x158
+RAX=0x0 is NULL
+RBX=0x0 is NULL
+RCX=0x0000012f8fc89e50 points into unknown readable memory: 70 f7 3b ff 2f 01 00 00
+RDX=0x0000000000000006 is an unknown value
+RSP=0x0000000266fd9ce0 is pointing into the stack for thread: 0x0000012fff153000
+RBP=0x0000000266fdc460 is pointing into the stack for thread: 0x0000012fff153000
+RSI=0x0000012fff3bf770 points into unknown readable memory: 60 4b ec 9a ff 7f 00 00
+RDI=0x0000000056662670 python36.dll::_PyExc_KeyboardInterrupt + 0x0
+R8 =0x0000000000000004 is an unknown value
+R9 =0x0000000000000002 is an unknown value
+R10=0x0000012f8f6a4f60 points into unknown readable memory: 01 00 00 00 80 07 00 00
+R11=0x0000000266fd9cd0 is pointing into the stack for thread: 0x0000012fff153000
+R12=0x0000000266fd9ee0 is pointing into the stack for thread: 0x0000012fff153000
+R13=0x0000000266fde1e0 is pointing into the stack for thread: 0x0000012fff153000
+R14=0x0000012ff6548e50 points into unknown readable memory: 68 51 f2 c7 00 00 00 00
+R15=0x0 is NULL
+
+
+Registers:
+RAX=0x0000000000000000, RBX=0x0000000000000000, RCX=0x0000012f8fc89e50, RDX=0x0000000000000006
+RSP=0x0000000266fd9ce0, RBP=0x0000000266fdc460, RSI=0x0000012fff3bf770, RDI=0x0000000056662670
+R8 =0x0000000000000004, R9 =0x0000000000000002, R10=0x0000012f8f6a4f60, R11=0x0000000266fd9cd0
+R12=0x0000000266fd9ee0, R13=0x0000000266fde1e0, R14=0x0000012ff6548e50, R15=0x0000000000000000
+RIP=0x00007fff9ae7e228, EFLAGS=0x0000000000010246
+
+Top of Stack: (sp=0x0000000266fd9ce0)
+0x0000000266fd9ce0:   0000000000000000 0000000000000000
+0x0000000266fd9cf0:   0000012fff3bf770 0000000056662670
+0x0000000266fd9d00:   fffffffffffffffe 00000000563b4cd3
+0x0000000266fd9d10:   0000000056662670 0000000000000000
+0x0000000266fd9d20:   0000012fff3bf770 0000012fff153330
+0x0000000266fd9d30:   0000012fff3b0100 0000000056662670
+0x0000000266fd9d40:   0000000000000000 0000012fb2ba7c48
+0x0000000266fd9d50:   0000b7d0b880a101 0000000266fdd2a4
+0x0000000266fd9d60:   0000000266fdb218 00007fff9ae7d60a
+0x0000000266fd9d70:   0000012fff153330 0000012fff153330
+0x0000000266fd9d80:   0000012fb04c3110 0000012fff3bf770
+0x0000000266fd9d90:   0000000000000000 0000012fb04c3110
+0x0000000266fd9da0:   0000012fff3bf770 0000012fff153330
+0x0000000266fd9db0:   0000000000000000 00007fffe5d192bb
+0x0000000266fd9dc0:   fffffffffffffffe 0000000266fda450
+0x0000000266fd9dd0:   000024d9890595de 0000000a656e6f4e 
+
+Instructions: (pc=0x00007fff9ae7e228)
+0x00007fff9ae7e208:   08 01 00 00 48 ff 07 4c 8d 0d ba dd 00 00 4c 8b
+0x00007fff9ae7e218:   c7 49 8b d6 e8 8f db 00 00 48 8b 8e 08 01 00 00
+0x00007fff9ae7e228:   48 ff 03 4c 8d 0d 9e dd 00 00 4c 8b c3 49 8b d6
+0x00007fff9ae7e238:   e8 73 db 00 00 c6 44 24 70 00 48 8b 4c 24 48 48 
+
+
+Stack slot to memory mapping:
+stack at sp + 0 slots: 0x0 is NULL
+stack at sp + 1 slots: 0x0 is NULL
+stack at sp + 2 slots: 0x0000012fff3bf770 points into unknown readable memory: 60 4b ec 9a ff 7f 00 00
+stack at sp + 3 slots: 0x0000000056662670 python36.dll::_PyExc_KeyboardInterrupt + 0x0
+stack at sp + 4 slots: 
