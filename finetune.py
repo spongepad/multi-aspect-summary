@@ -43,7 +43,8 @@ def get_dataset(dataset_name, train_docs, wiki_sup):
         split=split,
         domain=dataset_name, 
         max_src_length=MAX_SRC_LENGTH, 
-        max_tgt_length=MAX_TGT_LENGTH, 
+        max_tgt_length=MAX_TGT_LENGTH,
+        mask_ratio=1.0
         n_docs=train_docs if split == 'train' else None)
         for split in ['train', 'dev']}
 

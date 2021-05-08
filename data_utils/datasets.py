@@ -1,5 +1,7 @@
 import os
+import re
 import json
+import random
 import numpy as np
 from tqdm import tqdm
 
@@ -11,7 +13,7 @@ from transformers import BartTokenizer
 from kobart import get_kobart_tokenizer
 
 class SummaryDataset(Dataset):
-    def __init__(self, split, domain, max_src_length, max_tgt_length, ignore_index=-100, n_docs=None):
+    def __init__(self, split, domain, max_src_length, max_tgt_length, ignore_index=-100, mask_ratio=1.0, n_docs=None):
 
         self.tokenizer = get_kobart_tokenizer()
         self.max_src_length = max_src_length
@@ -19,6 +21,10 @@ class SummaryDataset(Dataset):
         self.ignore_index = ignore_index
         self.bos_token = '<s>'
         self.eos_token = '</s>'
+
+        self.mask_ratio = mask_ratio
+
+        self.masking = True if mask_ratio > 0 else False
 
         data_path = f'data/{domain}/{split}.json'
 
@@ -35,18 +41,40 @@ class SummaryDataset(Dataset):
                     'summary': asp_sum['summary']
                 })
 
+    def noise_sentence(document, rel_words, mask_ratio=1, replacement_token = "<mask>"):
+
+        num_words = int(len(rel_words) * mask_ratio)
+
+        if num_words == 0: num_words+=1
+
+        sample_rel_word = random.sample(rel_words, num_words)
+        for rel in sample_rel_word:
+          document = re.sub(pattern = rel, repl="<mask>" ,string=document)
+        
+        document = re.sub(r'<mask> <mask>', "<mask>", document)
+        document = re.sub(r'<mask> <mask>', "<mask>", document)
+        return document
+
     def __len__(self):
         return len(self._examples)
 
     def __getitem__(self, item):
         example = self._examples[item]
 
-        src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
-          aspect=example['aspect'],
-          rel_words=' '.join(example['rel_words']),
-          doc=example['document'],
-          bos=self.bos_token,
-          eos=self.eos_token)
+        if masking :
+          src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
+            aspect=example['aspect'],
+            rel_words=' '.join(example['rel_words']),
+            doc=noise_sentence(example['document']),
+            bos=self.bos_token,
+            eos=self.eos_token)
+        else :
+          src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
+            aspect=example['aspect'],
+            rel_words=' '.join(example['rel_words']),
+            doc=example['document'],
+            bos=self.bos_token,
+            eos=self.eos_token)
 
         tgt = '{bos}{aspect} : {summary}{eos}'.format(
           aspect=example['aspect'],

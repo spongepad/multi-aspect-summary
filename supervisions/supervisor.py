@@ -1,8 +1,6 @@
 import numpy as np
-import pandas as pd
 import kss
-from sklearn.feature_extraction.text import TfidfVectorizer
-from util import make_df, tfidf_tokenizer
+from util import make_df
 
 from konlpy.tag import Okt
 okt = Okt()
@@ -16,10 +14,14 @@ class Supervisor:
         in_text_aspect = []
         
         for aspect in self._ae.index.values:
-          for relation in self._ae[aspect].split() :
-            if relation in text:
+            if aspect in text:
                 if aspect not in in_text_aspect:
                     in_text_aspect.append(aspect)
+
+            for relation in self._ae[aspect].split() :
+                if relation in text:
+                    if aspect not in in_text_aspect:
+                        in_text_aspect.append(aspect)
             
 
         return in_text_aspect
@@ -32,9 +34,8 @@ class Supervisor:
 
         picked_sents = []
         for sent in kss.split_sentences(document):
-            sent_morphs = okt.morphs(sent)
             for neighbor in neighbors:
-                if neighbor['entity'] in sent_morphs:
+                if neighbor['entity'] in sent:
                     if sent not in picked_sents:
                         picked_sents.append(sent)
 
@@ -49,6 +50,9 @@ class Supervisor:
 
         selected_words = []
         rel_words = self._ae[aspect].split()
+
+        if aspect not in rel_words:
+            rel_words.append(aspect)
 
         for word in document_words:
             word_stem = okt.morphs(word, norm=True, stem=True)
