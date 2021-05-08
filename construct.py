@@ -36,7 +36,7 @@ def main(split):
             continue
 
         dataset = []
-        json.dump(dataset, open(f'data/earphone/{split}_{l}-{r}.json', 'w'), indent=4, ensure_ascii=False)
+        json.dump(dataset, open(f'data/earphone/{split}_{l}-{r}.json', 'w', encoding='utf-8'), indent=4, ensure_ascii=False)
 
         prog_bar = tqdm(documents[l:r], total=len(documents[l:r]))
         for doc_id, (document) in enumerate(prog_bar):
@@ -64,7 +64,7 @@ def main(split):
                         'rel_words': rel_words
                     })
 
-        json.dump(dataset, open(f'data/earphone/{split}_{l}-{r}.json', 'w'), indent=4, ensure_ascii=False)
+        json.dump(dataset, open(f'data/earphone/{split}_{l}-{r}.json', 'w', encoding='utf-8'), indent=4, ensure_ascii=False)
 
 
 if __name__ == '__main__':

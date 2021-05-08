@@ -16,14 +16,16 @@ MAX_LEN = 140
 LEN_PENALTY = 2.
 BEAM_SIZE = 4
 NO_REPEAT_NGRAM_SIZE = 2
+MASK_RATIO = 0
 
 def main(log_path, wiki_sup=True):
     supervisor = pickle.load(open('supervisions/supervisor.pickle', 'rb')) \
         if wiki_sup else None
-    dataset = SummaryDataset(split='test',
+    dataset = SummaryDataset(split='dev',
         domain='earphone', 
         max_src_length=512, 
-        max_tgt_length=MAX_LEN)
+        max_tgt_length=MAX_LEN,
+        mask_ratio=MASK_RATIO)
     test_examples = [example for example in dataset]
 
     tokenizer = get_kobart_tokenizer()

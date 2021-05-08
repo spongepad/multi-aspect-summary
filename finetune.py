@@ -27,6 +27,7 @@ MAX_TGT_LENGTH = 140
 LABEL_SMOOTH = 0.1
 PRECISION = 16
 N_WIKI_WORDS = 20
+MASK_RATIO = 1.0
 MODEL_INIT = 'kobart'
 
 class OnCheckpointHparams(Callback):
@@ -44,7 +45,7 @@ def get_dataset(dataset_name, train_docs, wiki_sup):
         domain=dataset_name, 
         max_src_length=MAX_SRC_LENGTH, 
         max_tgt_length=MAX_TGT_LENGTH,
-        mask_ratio=1.0
+        mask_ratio=MASK_RATIO,
         n_docs=train_docs if split == 'train' else None)
         for split in ['train', 'dev']}
 

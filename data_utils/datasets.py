@@ -13,7 +13,7 @@ from transformers import BartTokenizer
 from kobart import get_kobart_tokenizer
 
 class SummaryDataset(Dataset):
-    def __init__(self, split, domain, max_src_length, max_tgt_length, ignore_index=-100, mask_ratio=1.0, n_docs=None):
+    def __init__(self, split, domain, max_src_length, max_tgt_length, ignore_index=-100, mask_ratio=0, n_docs=None):
 
         self.tokenizer = get_kobart_tokenizer()
         self.max_src_length = max_src_length
@@ -41,11 +41,11 @@ class SummaryDataset(Dataset):
                     'summary': asp_sum['summary']
                 })
 
-    def noise_sentence(document, rel_words, mask_ratio=1, replacement_token = "<mask>"):
+    def noise_sentence(self, document, rel_words, mask_ratio, replacement_token = "<mask>"):
 
         num_words = int(len(rel_words) * mask_ratio)
 
-        if num_words == 0: num_words+=1
+        if num_words == 0 and len(rel_words) > 0: num_words+=1
 
         sample_rel_word = random.sample(rel_words, num_words)
         for rel in sample_rel_word:
@@ -61,11 +61,11 @@ class SummaryDataset(Dataset):
     def __getitem__(self, item):
         example = self._examples[item]
 
-        if masking :
+        if self.masking :
           src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
             aspect=example['aspect'],
             rel_words=' '.join(example['rel_words']),
-            doc=noise_sentence(example['document']),
+            doc=self.noise_sentence(example['document'], example['rel_words'], self.mask_ratio),
             bos=self.bos_token,
             eos=self.eos_token)
         else :
