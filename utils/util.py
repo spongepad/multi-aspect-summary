@@ -14,9 +14,3 @@ def make_df():
   rel = pd.Series(rel, index=aspect)
 
   return rel
-
-def tfidf_tokenizer(raw, pos=["Noun","Alpha","Verb","Number"], stopword=[]):
-  return [
-      word for word, tag in okt.pos(raw, norm=True, stem=True)
-          if len(word) > 1 and tag in pos and word not in stopword
-      ]
