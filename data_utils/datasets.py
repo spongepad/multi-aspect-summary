@@ -76,8 +76,7 @@ class SummaryDataset(Dataset):
             bos=self.bos_token,
             eos=self.eos_token)
 
-        tgt = '{bos}{aspect} : {summary}{eos}'.format(
-          aspect=example['aspect'],
+        tgt = '{bos}{summary}{eos}'.format(
           summary=example['summary'],
           bos=self.bos_token,
           eos=self.eos_token)
