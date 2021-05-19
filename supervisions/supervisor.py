@@ -1,6 +1,6 @@
 import numpy as np
 import kss
-from util import make_df
+from utils.util import make_df
 
 from konlpy.tag import Okt
 okt = Okt()
