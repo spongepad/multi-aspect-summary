@@ -39,21 +39,21 @@ class OnCheckpointHparams(Callback):
             save_hparams_to_yaml(config_yaml=file_path, hparams=pl_module.hparams)
 
 
-def get_dataset(dataset_name, train_docs, wiki_sup):
+def get_dataset(dataset_name, train_docs, weak_sup, split_input):
     return {split: SummaryDataset(
-        split=split,
+        split=split_input,
         domain=dataset_name, 
         max_src_length=MAX_SRC_LENGTH, 
         max_tgt_length=MAX_TGT_LENGTH,
         mask_ratio=MASK_RATIO,
-        n_docs=train_docs if split == 'train' else None)
+        n_docs=train_docs if split == 'train' else None,
+        weak_sup=weak_sup)
         for split in ['train', 'dev']}
 
 
 def main(dataset_name='weaksup', n_epochs=1, train_docs=100,
-         pretrained_ckpt=None, wiki_sup=True):
-    dataset = get_dataset(
-        dataset_name=dataset_name, train_docs=train_docs, wiki_sup=wiki_sup)
+         pretrained_ckpt=None, weak_sup=True, split='train'):
+    dataset = get_dataset(split_input=split, dataset_name=dataset_name, train_docs=train_docs, weak_sup=weak_sup)
 
     dataloaders = {
         split: DataLoader(
