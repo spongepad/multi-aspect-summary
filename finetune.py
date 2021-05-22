@@ -39,21 +39,35 @@ class OnCheckpointHparams(Callback):
             save_hparams_to_yaml(config_yaml=file_path, hparams=pl_module.hparams)
 
 
+<<<<<<< Updated upstream
 def get_dataset(dataset_name, train_docs, wiki_sup):
+=======
+def get_dataset(dataset_name, train_docs, related_word_mask, split_input):
+>>>>>>> Stashed changes
     return {split: SummaryDataset(
         split=split,
         domain=dataset_name, 
         max_src_length=MAX_SRC_LENGTH, 
         max_tgt_length=MAX_TGT_LENGTH,
         mask_ratio=MASK_RATIO,
+<<<<<<< Updated upstream
         n_docs=train_docs if split == 'train' else None)
+=======
+        n_docs=train_docs if split == 'train' else None,
+        related_word_mask=related_word_mask)
+>>>>>>> Stashed changes
         for split in ['train', 'dev']}
 
 
 def main(dataset_name='weaksup', n_epochs=1, train_docs=100,
+<<<<<<< Updated upstream
          pretrained_ckpt=None, wiki_sup=True):
     dataset = get_dataset(
         dataset_name=dataset_name, train_docs=train_docs, wiki_sup=wiki_sup)
+=======
+         pretrained_ckpt=None, related_word_mask=True, split='train'):
+    dataset = get_dataset(split_input=split, dataset_name=dataset_name, train_docs=train_docs, related_word_mask=related_word_mask)
+>>>>>>> Stashed changes
 
     dataloaders = {
         split: DataLoader(

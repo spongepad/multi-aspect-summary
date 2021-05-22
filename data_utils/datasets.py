@@ -4,6 +4,7 @@ import json
 import random
 import numpy as np
 from tqdm import tqdm
+import math
 
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -13,7 +14,12 @@ from transformers import BartTokenizer
 from kobart import get_kobart_tokenizer
 
 class SummaryDataset(Dataset):
+<<<<<<< Updated upstream
     def __init__(self, split, domain, max_src_length, max_tgt_length, ignore_index=-100, mask_ratio=0, n_docs=None):
+=======
+    def __init__(self, split, domain, max_src_length, max_tgt_length, ignore_index=-100,
+    mask_ratio=0, n_docs=None, related_word_mask = True):
+>>>>>>> Stashed changes
 
         self.tokenizer = get_kobart_tokenizer()
         self.max_src_length = max_src_length
@@ -25,6 +31,12 @@ class SummaryDataset(Dataset):
         self.mask_ratio = mask_ratio
 
         self.masking = True if mask_ratio > 0 else False
+<<<<<<< Updated upstream
+=======
+        self.related_word_mask = related_word_mask
+        
+        print('@@@@@@@@@@@@@@@@@@@@@split : ', split)
+>>>>>>> Stashed changes
 
         data_path = f'data/{domain}/{split}.json'
 
@@ -41,7 +53,7 @@ class SummaryDataset(Dataset):
                     'summary': asp_sum['summary']
                 })
 
-    def noise_sentence(self, document, rel_words, mask_ratio, replacement_token = "<mask>"):
+    def noise_sentence(self, document, rel_words, mask_ratio, replacement_token = "<mask>"):  # # 리뷰 내의 관련 단어 mask
 
         num_words = int(len(rel_words) * mask_ratio)
 
@@ -55,11 +67,37 @@ class SummaryDataset(Dataset):
         document = re.sub(r'<mask> <mask>', "<mask>", document)
         return document
 
+    def noisesentence(sentence, percent_words, replacement_token = "<mask>"):    # 일반 mask
+
+        # Create a list item and copy
+        sentence = sentence.split(' ')
+        sentence = sentence.copy()
+        
+        num_words = math.ceil(len(sentence) * percent_words)
+        
+        sample_tokens = set(np.arange(0, np.maximum(1, len(sentence)-1)))
+        
+        words_to_noise = random.sample(sample_tokens, num_words)
+        
+        # Swap out words, but not full stops
+        for pos in words_to_noise:
+            if sentence[pos] != '.':
+                sentence[pos] = replacement_token
+        
+        # Remove redundant spaces
+        sentence = re.sub(r' {2,5}', ' ', ' '.join(sentence))
+        
+        # Combine concurrent <mask> tokens into a single token; this just does two rounds of this; more could be done
+        sentence = re.sub(r'<mask> <mask>', "<mask>", sentence)
+        sentence = re.sub(r'<mask> <mask>', "<mask>", sentence)
+        return sentence
+
     def __len__(self):
         return len(self._examples)
 
     def __getitem__(self, item):
         example = self._examples[item]
+<<<<<<< Updated upstream
 
         if self.masking :
           src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
@@ -75,6 +113,44 @@ class SummaryDataset(Dataset):
             doc=example['document'],
             bos=self.bos_token,
             eos=self.eos_token)
+=======
+        
+        if self.related_word_mask:
+            if self.masking :
+              src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
+                aspect=example['aspect'],
+                rel_words=' '.join(example['rel_words']),
+                doc=self.noise_sentence(example['document'], example['rel_words'], self.mask_ratio),
+                bos=self.bos_token,
+                eos=self.eos_token)
+              print("관련 단어 masking임")
+            else :
+              src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
+                aspect=example['aspect'],
+                rel_words=' '.join(example['rel_words']),
+                doc=example['document'],
+                bos=self.bos_token,
+                eos=self.eos_token)
+                
+        else:
+            if self.masking :
+              src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
+                aspect=example['aspect'],
+                rel_words=' '.join(example['rel_words']),
+                doc=self.noisesentence(example['document'], self.mask_ratio),
+                bos=self.bos_token,
+                eos=self.eos_token)
+              print("일반 masking임")
+            else :
+              src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
+                aspect=example['aspect'],
+                rel_words=' '.join(example['rel_words']),
+                doc=example['document'],
+                bos=self.bos_token,
+                eos=self.eos_token)
+                
+        # print('src : ', src) # 출력 잘되는지 확인하기
+>>>>>>> Stashed changes
 
         tgt = '{bos}{summary}{eos}'.format(
           summary=example['summary'],
