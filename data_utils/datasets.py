@@ -14,12 +14,8 @@ from transformers import BartTokenizer
 from kobart import get_kobart_tokenizer
 
 class SummaryDataset(Dataset):
-<<<<<<< Updated upstream
-    def __init__(self, split, domain, max_src_length, max_tgt_length, ignore_index=-100, mask_ratio=0, n_docs=None):
-=======
     def __init__(self, split, domain, max_src_length, max_tgt_length, ignore_index=-100,
     mask_ratio=0, n_docs=None, related_word_mask = True):
->>>>>>> Stashed changes
 
         self.tokenizer = get_kobart_tokenizer()
         self.max_src_length = max_src_length
@@ -31,12 +27,9 @@ class SummaryDataset(Dataset):
         self.mask_ratio = mask_ratio
 
         self.masking = True if mask_ratio > 0 else False
-<<<<<<< Updated upstream
-=======
         self.related_word_mask = related_word_mask
         
         print('@@@@@@@@@@@@@@@@@@@@@split : ', split)
->>>>>>> Stashed changes
 
         data_path = f'data/{domain}/{split}.json'
 
@@ -97,23 +90,6 @@ class SummaryDataset(Dataset):
 
     def __getitem__(self, item):
         example = self._examples[item]
-<<<<<<< Updated upstream
-
-        if self.masking :
-          src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
-            aspect=example['aspect'],
-            rel_words=' '.join(example['rel_words']),
-            doc=self.noise_sentence(example['document'], example['rel_words'], self.mask_ratio),
-            bos=self.bos_token,
-            eos=self.eos_token)
-        else :
-          src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
-            aspect=example['aspect'],
-            rel_words=' '.join(example['rel_words']),
-            doc=example['document'],
-            bos=self.bos_token,
-            eos=self.eos_token)
-=======
         
         if self.related_word_mask:
             if self.masking :
@@ -150,7 +126,6 @@ class SummaryDataset(Dataset):
                 eos=self.eos_token)
                 
         # print('src : ', src) # 출력 잘되는지 확인하기
->>>>>>> Stashed changes
 
         tgt = '{bos}{summary}{eos}'.format(
           summary=example['summary'],
