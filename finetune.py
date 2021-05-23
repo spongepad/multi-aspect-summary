@@ -27,7 +27,7 @@ MAX_TGT_LENGTH = 140
 LABEL_SMOOTH = 0.1
 PRECISION = 16
 N_WIKI_WORDS = 20
-MASK_RATIO = 1.0
+# MASK_RATIO = 1.0
 MODEL_INIT = 'kobart'
 
 class OnCheckpointHparams(Callback):
@@ -39,7 +39,7 @@ class OnCheckpointHparams(Callback):
             save_hparams_to_yaml(config_yaml=file_path, hparams=pl_module.hparams)
 
 
-def get_dataset(dataset_name, train_docs, related_word_mask, split_input):
+def get_dataset(dataset_name, train_docs, related_word_mask, split_input, MASK_RATIO=1.0):
     return {split: SummaryDataset(
         split=split_input,
         domain=dataset_name, 
@@ -52,8 +52,11 @@ def get_dataset(dataset_name, train_docs, related_word_mask, split_input):
 
 
 def main(dataset_name='weaksup', n_epochs=1, train_docs=100,
-         pretrained_ckpt=None, related_word_mask=True, split='train'):
-    dataset = get_dataset(split_input=split, dataset_name=dataset_name, train_docs=train_docs, related_word_mask=related_word_mask)
+         pretrained_ckpt=None, related_word_mask=True, split='train',
+         dir_path='0', mask_ratio=1.0):
+    dataset = get_dataset(split_input=split, dataset_name=dataset_name, train_docs=train_docs, related_word_mask=related_word_mask, MASK_RATIO=mask_ratio)
+    print("dir_path : ", dir_path)
+    print("mask_ratio : ", mask_ratio)
 
     dataloaders = {
         split: DataLoader(
@@ -64,15 +67,15 @@ def main(dataset_name='weaksup', n_epochs=1, train_docs=100,
         for split in ['train', 'dev']}
 
     if pretrained_ckpt is not None:
-        log_dir = f'logs/{dataset_name}_plus/docs{train_docs}/'
+        log_dir = f'logs/{dataset_name}_plus/docs{dir_path}/'
     else:
-        log_dir = f'logs/{dataset_name}/docs{train_docs}/'
+        log_dir = f'logs/{dataset_name}/docs{dir_path}/'
 
     if os.path.exists(log_dir):
         print(f'log_dir \"{log_dir}\" exists. training skipped.')
         return
     os.makedirs(log_dir)
-
+    print("log_dir : ", log_dir)
     logger.add(f'{log_dir}/log.txt')
     logger.info(f'pretrained checkpoint: {pretrained_ckpt}')
     if pretrained_ckpt is None:
