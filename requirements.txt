@@ -8,4 +8,6 @@ loguru==0.5.3
 cleantext==1.1.3
 konlpy
 kss
+bert-score
+rouge
 git+https://github.com/SKT-AI/KoBART#egg=kobart
