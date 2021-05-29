@@ -8,10 +8,12 @@ import math
 
 import torch
 from torch.utils.data import Dataset, DataLoader
-
 from transformers import BartTokenizer
-
 from kobart import get_kobart_tokenizer
+
+from konlpy.tag import Okt
+okt = Okt()
+
 
 class SummaryDataset(Dataset):
     def __init__(self, split, domain, max_src_length, max_tgt_length, ignore_index=-100,
@@ -60,12 +62,11 @@ class SummaryDataset(Dataset):
     def noise_sentence(self, document, mask_ratio, replacement_token = "<mask>"):    # 일반 mask
 
         # Create a list item and copy
-        document_words = document.split(' ')
+        document_words = okt.morphs(document)
         document_words = document_words.copy()
         
         num_words = math.ceil(int(len(document_words) * mask_ratio))
         
-        # sample_tokens = set(np.arange(0, np.maximum(1, len(document)-1))) # 기존 코드 (sample_tokens를 string으로 만들어줘야 함)
         sample_tokens = random.sample(document_words, num_words) # sample_tokens를 string으로 만들어줌
         
         # Swap out words, but not full stops
