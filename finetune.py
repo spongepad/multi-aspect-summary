@@ -83,7 +83,7 @@ def main(dataset_name='weaksup', n_epochs=1, train_docs=100,
             checkpoint_path=pretrained_ckpt, text_logger=logger)
 
     train_steps = n_epochs * (
-            len(dataloaders['train']) // ACCUMULATE_GRAD_BATCHES + 1)
+            len(dataloaders['train_no_aug']) // ACCUMULATE_GRAD_BATCHES + 1)
     warmup_steps = int(train_steps * WARMUP_PROPORTION)
     
     bart.set_hparams(
