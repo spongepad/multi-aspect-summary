@@ -28,12 +28,6 @@ class SummaryDataset(Dataset):
 
         self.masking = True if mask_ratio > 0 else False
         self.related_word_mask = related_word_mask
-        
-        print('split : ', split)
-        if related_word_mask == True:
-          print("관련 단어 masking임")
-        else:
-          print("일반 masking임")
 
         data_path = f'data/{domain}/{split}.json'
 
@@ -51,13 +45,12 @@ class SummaryDataset(Dataset):
                 })
 
     def rel_word_noise_sentence(self, document, rel_words, mask_ratio, replacement_token = "<mask>"):  # 리뷰 내의 관련 단어 mask
-        # print("rel_words : ", rel_words) # 무슨 값인지 확인
         num_words = int(len(rel_words) * mask_ratio)
         if num_words == 0 and len(rel_words) > 0: num_words+=1
 
         sample_rel_word = random.sample(rel_words, num_words)
         for rel in sample_rel_word:
-          document = re.sub(pattern = rel, repl="<mask>" ,string=document)
+          document = re.sub(pattern = rel, repl=replacement_token ,string=document)
         
         document = re.sub(r'<mask> <mask>', "<mask>", document)
         document = re.sub(r'<mask> <mask>', "<mask>", document)
@@ -69,23 +62,14 @@ class SummaryDataset(Dataset):
         document_words = document.split(' ')
         document_words = document_words.copy()
         
-        # print("document : ", document_words) # 무슨 값인지 확인
-        # print("type : ", type(document_words)) # 무슨 타입인지 확인
         num_words = math.ceil(int(len(document_words) * mask_ratio))
         
         # sample_tokens = set(np.arange(0, np.maximum(1, len(document)-1))) # 기존 코드 (sample_tokens를 string으로 만들어줘야 함)
         sample_tokens = random.sample(document_words, num_words) # sample_tokens를 string으로 만들어줌
         
-        words_to_noise = random.sample(sample_tokens, num_words)
-        
         # Swap out words, but not full stops
-        for pos in words_to_noise:
-            # if document[pos] != '.': # 기존 코드
-            #     document[pos] = replacement_token # 기존 코드
+        for pos in sample_tokens:
             document = re.sub(pattern = pos, repl=replacement_token ,string=document)
-        
-        # Remove redundant spaces
-        document = re.sub(r' {2,5}', ' ', ' '.join(document))
         
         # Combine concurrent <mask> tokens into a single token; this just does two rounds of this; more could be done
         document = re.sub(r'<mask> <mask>', "<mask>", document)
@@ -97,8 +81,6 @@ class SummaryDataset(Dataset):
 
     def __getitem__(self, item):
         example = self._examples[item]
-        # print("example['document'] : ", example['document']) # 무슨 값인지 확인
-        # print("type(example['document'] : ", type(example['document'])) # 무슨 타입인지 확인
         
         if self.related_word_mask:
             if self.masking :
@@ -133,8 +115,6 @@ class SummaryDataset(Dataset):
                 bos=self.bos_token,
                 eos=self.eos_token)
                 
-        # print('src : ', src) # 출력 잘되는지 확인하기
-
         tgt = '{bos}{summary}{eos}'.format(
           summary=example['summary'],
           bos=self.bos_token,

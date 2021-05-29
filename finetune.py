@@ -39,32 +39,30 @@ class OnCheckpointHparams(Callback):
             save_hparams_to_yaml(config_yaml=file_path, hparams=pl_module.hparams)
 
 
-def get_dataset(dataset_name, train_docs, related_word_mask, split_input, MASK_RATIO=1.0):
+def get_dataset(dataset_name, train_docs, related_word_mask, MASK_RATIO=1.0):
     return {split: SummaryDataset(
-        split=split_input,
+        split=split,
         domain=dataset_name, 
         max_src_length=MAX_SRC_LENGTH, 
         max_tgt_length=MAX_TGT_LENGTH,
         mask_ratio=MASK_RATIO,
-        n_docs=train_docs if split == 'train' else None,
+        n_docs=train_docs if split == 'train_no_aug' else None,
         related_word_mask=related_word_mask)
-        for split in ['train', 'dev']}
+        for split in ['train_no_aug', 'val_no_aug']}
 
 
 def main(dataset_name='weaksup', n_epochs=1, train_docs=100,
-         pretrained_ckpt=None, related_word_mask=True, split='train',
+         pretrained_ckpt=None, related_word_mask=True,
          dir_path='0', mask_ratio=1.0):
-    dataset = get_dataset(split_input=split, dataset_name=dataset_name, train_docs=train_docs, related_word_mask=related_word_mask, MASK_RATIO=mask_ratio)
-    print("dir_path : ", dir_path)
-    print("mask_ratio : ", mask_ratio)
+    dataset = get_dataset(dataset_name=dataset_name, train_docs=train_docs, related_word_mask=related_word_mask, MASK_RATIO=mask_ratio)
 
     dataloaders = {
         split: DataLoader(
             dataset=dataset[split],
             batch_size=BATCH_SIZE,
-            shuffle=(split == 'train'),
+            shuffle=(split == 'train_no_aug'),
             num_workers=NUM_WORKERS)
-        for split in ['train', 'dev']}
+        for split in ['train_no_aug', 'val_no_aug']}
 
     if pretrained_ckpt is not None:
         log_dir = f'logs/{dataset_name}_plus/docs{dir_path}/'
@@ -75,7 +73,7 @@ def main(dataset_name='weaksup', n_epochs=1, train_docs=100,
         print(f'log_dir \"{log_dir}\" exists. training skipped.')
         return
     os.makedirs(log_dir)
-    print("log_dir : ", log_dir)
+
     logger.add(f'{log_dir}/log.txt')
     logger.info(f'pretrained checkpoint: {pretrained_ckpt}')
     if pretrained_ckpt is None:
@@ -114,8 +112,8 @@ def main(dataset_name='weaksup', n_epochs=1, train_docs=100,
 
     trainer.fit(
         model=bart,
-        train_dataloader=dataloaders['train'],
-        val_dataloaders=dataloaders['dev'])
+        train_dataloader=dataloaders['train_no_aug'],
+        val_dataloaders=dataloaders['val_no_aug'])
 
     logger.info('training finished.')
 
