@@ -62,7 +62,8 @@ class SummaryDataset(Dataset):
     def noise_sentence(self, document, mask_ratio, replacement_token = "<mask>"):    # 일반 mask
 
         # Create a list item and copy
-        document_words = okt.morphs(document)
+        #document_words = okt.morphs(document)
+        document_words = document.split(' ')
         document_words = document_words.copy()
         
         num_words = math.ceil(int(len(document_words) * mask_ratio))
@@ -117,10 +118,7 @@ class SummaryDataset(Dataset):
                 bos=self.bos_token,
                 eos=self.eos_token)
                 
-        tgt = '{bos}{summary}{eos}'.format(
-          summary=example['summary'],
-          bos=self.bos_token,
-          eos=self.eos_token)
+        tgt = example['summary']
         
         input_ids = self.tokenizer(src, 
                 max_length=self.max_src_length,
