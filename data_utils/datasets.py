@@ -80,7 +80,6 @@ class SummaryDataset(Dataset):
         example = self._examples[item]
         
         if self.rel_flag:
-          else:
             src = '{bos}{aspect} :{doc}{eos}'.format(
               aspect=example['aspect'],
               doc=example['document'],
