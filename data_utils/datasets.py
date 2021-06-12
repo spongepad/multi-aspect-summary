@@ -59,8 +59,6 @@ class SummaryDataset(Dataset):
         return document
 
     def noise_sentence(self, document, mask_ratio, replacement_token = "<mask>"):    # 일반 mask
-
-        # Create a list item and copy
         document_words = okt.morphs(document)
         document_words = document_words.copy()
         
@@ -68,11 +66,9 @@ class SummaryDataset(Dataset):
         
         sample_tokens = random.sample(document_words, num_words) # sample_tokens를 string으로 만들어줌
         
-        # Swap out words, but not full stops
         for pos in sample_tokens:
             document = re.sub(pattern = pos, repl=replacement_token ,string=document)
         
-        # Combine concurrent <mask> tokens into a single token; this just does two rounds of this; more could be done
         document = re.sub(r'<mask> <mask>', "<mask>", document)
         document = re.sub(r'<mask> <mask>', "<mask>", document)
         return document
