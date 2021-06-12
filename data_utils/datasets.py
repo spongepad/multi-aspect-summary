@@ -48,7 +48,6 @@ class SummaryDataset(Dataset):
 
     def rel_word_noise_sentence(self, document, rel_words, mask_ratio, replacement_token = "<mask>"):  # 리뷰 내의 관련 단어 mask
         num_words = int(len(rel_words) * mask_ratio)
-
         if num_words == 0 and len(rel_words) > 0: num_words+=1
 
         sample_rel_word = random.sample(rel_words, num_words)
