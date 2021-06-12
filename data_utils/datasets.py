@@ -84,38 +84,12 @@ class SummaryDataset(Dataset):
         example = self._examples[item]
         
         if self.rel_flag:
-          if self.related_word_mask:
-            if self.masking :
-              src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
-                aspect=example['aspect'],
-                rel_words=' ',
-                doc=self.rel_word_noise_sentence(example['document'], example['rel_words'], self.mask_ratio),
-                bos=self.bos_token,
-                eos=self.eos_token)
-            else :
-              src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
-                aspect=example['aspect'],
-                rel_words=' ',
-                doc=example['document'],
-                bos=self.bos_token,
-                eos=self.eos_token)
-               
           else:
-            if self.masking :
-              src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
-                aspect=example['aspect'],
-                rel_words=' ',
-                doc=self.noise_sentence(example['document'], self.mask_ratio),
-                bos=self.bos_token,
-                eos=self.eos_token)
-              
-            else:
-              src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
-                aspect=example['aspect'],
-                rel_words=' ',
-                doc=example['document'],
-                bos=self.bos_token,
-                eos=self.eos_token)
+            src = '{bos}{aspect} :{doc}{eos}'.format(
+              aspect=example['aspect'],
+              doc=example['document'],
+              bos=self.bos_token,
+              eos=self.eos_token)
                 
         else:
           if self.related_word_mask:
