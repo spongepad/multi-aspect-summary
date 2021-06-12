@@ -1,5 +1,4 @@
 import numpy as np
-from keras.models import load_model
 from tqdm import tqdm
 from sklearn.metrics import classification_report
 import keras.backend as K
@@ -13,17 +12,33 @@ from my_layers import Attention, Average, WeightedSum, WeightedAspectEmb, MaxMar
 # The hyper parameters should be exactly the same as those used for training
 
 parser = U.add_common_args()
+parser.add_argument("-e", "--embdim", dest="emb_dim", type=int, metavar='<int>', default=100,
+                    help="Embeddings dimension (default=100)")
+parser.add_argument("-as", "--aspect-size", dest="aspect_size", type=int, metavar='<int>', default=15,
+                    help="The number of aspects specified by users (default=14)")
+parser.add_argument("--emb-name",  type=str,
+                    help="The name to the word embeddings file", default="w2v_64k_unigram_100d.model")
+parser.add_argument("--epochs", dest="epochs", type=int, metavar='<int>', default=200,
+                    help="Number of epochs (default=15)")
+parser.add_argument("-n", "--neg-size", dest="neg_size", type=int, metavar='<int>', default=20,
+                    help="Number of negative instances (default=20)")
+parser.add_argument("--seed", dest="seed", type=int, metavar='<int>', default=1234,
+                    help="Random seed (default=1234)")
+parser.add_argument("-a", "--algorithm", dest="algorithm", type=str, metavar='<str>', default='adam',
+                    help="Optimization algorithm (rmsprop|sgd|adagrad|adadelta|adam|adamax) (default=adam)")
+parser.add_argument("--ortho-reg", dest="ortho_reg", type=float, metavar='<float>', default=0.1,
+                    help="The weight of orthogonal regularization (default=0.1)")
 args = parser.parse_args()
 
 out_dir = args.out_dir_path + '/' + args.domain
 # out_dir = '../pre_trained_model/' + args.domain
 U.print_args(args)
 
-# assert args.domain in {'restaurant', 'beer'}
+assert args.algorithm in {'rmsprop', 'sgd', 'adagrad', 'adadelta', 'adam', 'adamax'}
+assert args.domain in {'restaurant', 'beer', 'earphone'}
 
 ###### Get test data #############
-vocab, train_x, _, overall_maxlen = dataset.get_data(args.domain, vocab_size=args.vocab_size, maxlen=args.maxlen)
-test_x = train_x 
+vocab, train_x, test_x, overall_maxlen = dataset.get_data(args.domain, vocab_size=args.vocab_size, maxlen=args.maxlen)
 test_x = sequence.pad_sequences(test_x, maxlen=overall_maxlen)
 test_length = test_x.shape[0]
 splits = []
@@ -36,11 +51,19 @@ test_x = np.split(test_x, splits)
 ############# Build model architecture, same as the model used for training #########
 
 ## Load the save model parameters
-model = load_model(out_dir + '/model_param',
-                   custom_objects={"Attention": Attention, "Average": Average, "WeightedSum": WeightedSum,
-                                   "MaxMargin": MaxMargin, "WeightedAspectEmb": WeightedAspectEmb,
-                                   "max_margin_loss": U.max_margin_loss},
-                   compile=True)
+from model import create_model, Model
+from keras.models import load_model
+from optimizers import get_optimizer
+
+optimizer = get_optimizer(args)
+
+def max_margin_loss(y_true, y_pred):
+    return K.mean(y_pred)
+model = create_model(args, overall_maxlen, vocab)
+
+## Load the save model parameters
+model.load_weights(out_dir+'/model_param')
+model.compile(optimizer=optimizer, loss=max_margin_loss, metrics=[max_margin_loss])
 
 
 ################ Evaluation ####################################
@@ -49,7 +72,7 @@ def evaluation(true, predict, domain):
     true_label = []
     predict_label = []
 
-    if domain == 'restaurant':
+    if domain == 'earphone':
 
         for line in predict:
             predict_label.append(line.strip())
@@ -58,7 +81,7 @@ def evaluation(true, predict, domain):
             true_label.append(line.strip())
 
         print(classification_report(true_label, predict_label,
-                                    ['Food', 'Staff', 'Ambience', 'Anecdotes', 'Price', 'Miscellaneous'], digits=3))
+                                    ['음질', '만족감', '디자인', '배터리', '블루투스', '착용감', '일반성'], digits=3))
 
     elif domain == 'drugs_cadec':
         for line in predict:
@@ -97,11 +120,11 @@ vocab_inv = {}
 for w, ind in vocab.items():
     vocab_inv[ind] = w
 
-test_fn = K.function([model.get_layer('sentence_input').input, K.learning_phase()],
-                     [model.get_layer('att_weights').output, model.get_layer('p_t').output])
+test_fn = Model(model.get_layer('sentence_input').input, 
+            [model.get_layer('att_weights').output, model.get_layer('p_t').output])
 att_weights, aspect_probs = [], []
 for batch in tqdm(test_x):
-    cur_att_weights, cur_aspect_probs = test_fn([batch, 0])
+    cur_att_weights, cur_aspect_probs = test_fn(batch, training=False)
     att_weights.append(cur_att_weights)
     aspect_probs.append(cur_aspect_probs)
 
@@ -147,11 +170,10 @@ for c in range(len(test_x)):
 ## cluster_map need to be specified manually according to the top words in each inferred aspect (save in aspect.log)
 
 # map for the pre-trained restaurant model (under pre_trained_model/restaurant)
-# cluster_map = {0: 'Food', 1: 'Miscellaneous', 2: 'Miscellaneous', 3: 'Food',
-#            4: 'Miscellaneous', 5: 'Food', 6:'Price',  7: 'Miscellaneous', 8: 'Staff', 
-#            9: 'Food', 10: 'Food', 11: 'Anecdotes', 
-#            12: 'Ambience', 13: 'Staff'}
-
-# print '--- Results on %s domain ---' % (args.domain)
-# test_labels = '../preprocessed_data/%s/test_label.txt' % (args.domain)
-# prediction(test_labels, aspect_probs, cluster_map, domain=args.domain)
+cluster_map = {0: '일반성', 1: '블루투스', 2: '음질', 3: '일반성',
+           4: '만족성', 5: '착용감', 6:'일반성',  7: '만족감', 8: '디자인', 
+           9: '일반성', 10: '일반성', 11: '일반성', 12: '일반성', 
+           13: '배터리', 14: '일반성'}
+print('--- Results on %s domain ---' % (args.domain))
+test_labels = 'preprocessed_data/%s/test_label.txt' % (args.domain)
+prediction(test_labels, aspect_probs, cluster_map, domain=args.domain)

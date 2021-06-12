@@ -95,6 +95,7 @@ optimizer = get_optimizer(args)
 ## Building model
 
 from model import create_model
+from gensim.models import KeyedVectors
 import keras.backend as K
 
 logger.info('  Building model')
@@ -103,6 +104,7 @@ model = create_model(args, overall_maxlen, vocab)
 model.get_layer('word_emb').trainable = False
 model.compile(optimizer=optimizer, loss=U.max_margin_loss, metrics=[U.max_margin_loss])
 
+emb_model = KeyedVectors.load(os.path.join(".", "preprocessed_data", args.domain, args.emb_name))
 ###############################################################################################################################
 ## Training
 #
@@ -117,6 +119,8 @@ for w, ind in vocab.items():
 sen_gen = sentence_batch_generator(train_x, args.batch_size)
 neg_gen = negative_batch_generator(train_x, args.batch_size, args.neg_size)
 batches_per_epoch = len(train_x) // args.batch_size
+
+e_aspect = ['음질', '만족감', '디자인', '배터리', '블루투스', '착용']
 
 min_loss = float('inf')
 for ii in range(args.epochs):
@@ -147,10 +151,19 @@ for ii in range(args.epochs):
             desc = aspect_emb[ind]
             sims = word_emb.dot(desc.T)
             ordered_words = np.argsort(sims)[::-1]
-            desc_list = [vocab_inv[w] + "|" + str(sims[w]) for w in ordered_words[:100]]
-            print('Aspect %d:' % ind)
+            desc_list = [vocab_inv[w] for w in ordered_words[:100]]
+
+            aspect_sims = {}
+            for label in e_aspect:
+                aspect_sims[label] = np.array([emb_model.wv.similarity(v_word, w) for w in desc_list]).mean()
+            
+            if max(aspect_sims.values()) > 0.3:
+                aspect_label = max(aspect_sims.keys(), key=lambda k:aspect_sims[k])
+            else:
+                aspect_label = None
+            print('Aspect {}: {}'.format(ind, aspect_label))
             print(desc_list)
-            aspect_file.write('Aspect %d:\n' % ind)
+            aspect_file.write('Aspect {}: {}'.format(ind, aspect_label))
             aspect_file.write(' '.join(desc_list) + '\n\n')
 
     logger.info('Epoch %d, train: %is' % (ii, tr_time))
