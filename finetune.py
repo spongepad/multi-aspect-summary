@@ -39,12 +39,13 @@ class OnCheckpointHparams(Callback):
             save_hparams_to_yaml(config_yaml=file_path, hparams=pl_module.hparams)
 
 
-def get_dataset(dataset_name, train_docs, related_word_mask, MASK_RATIO=1.0):
+def get_dataset(dataset_name, train_docs, related_word_mask, rel_flag = True, MASK_RATIO=1.0):
     return {split: SummaryDataset(
         split=split,
         domain=dataset_name, 
         max_src_length=MAX_SRC_LENGTH, 
         max_tgt_length=MAX_TGT_LENGTH,
+        rel_flag = rel_flag,
         mask_ratio=MASK_RATIO,
         n_docs=train_docs if split == 'train_no_aug' else None,
         related_word_mask=related_word_mask)
@@ -53,8 +54,8 @@ def get_dataset(dataset_name, train_docs, related_word_mask, MASK_RATIO=1.0):
 
 def main(dataset_name='weaksup', n_epochs=1, train_docs=100,
          pretrained_ckpt=None, related_word_mask=True,
-         dir_path='0', mask_ratio=1.0):
-    dataset = get_dataset(dataset_name=dataset_name, train_docs=train_docs, related_word_mask=related_word_mask, MASK_RATIO=mask_ratio)
+         dir_path='0', rel_flag=True , mask_ratio=1.0):
+    dataset = get_dataset(dataset_name=dataset_name, train_docs=train_docs, related_word_mask=related_word_mask, rel_flag=rel_flag ,MASK_RATIO=mask_ratio)
 
     dataloaders = {
         split: DataLoader(

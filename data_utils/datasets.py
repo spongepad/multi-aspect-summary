@@ -17,7 +17,7 @@ okt = Okt()
 
 class SummaryDataset(Dataset):
     def __init__(self, split, domain, max_src_length, max_tgt_length, ignore_index=-100,
-    mask_ratio=0, n_docs=None, related_word_mask = True):
+    mask_ratio=0, n_docs=None, rel_flag = True , related_word_mask = True):
 
         self.tokenizer = get_kobart_tokenizer()
         self.max_src_length = max_src_length
@@ -25,7 +25,7 @@ class SummaryDataset(Dataset):
         self.ignore_index = ignore_index
         self.bos_token = '<s>'
         self.eos_token = '</s>'
-
+        self.rel_flag = rel_flag
         self.mask_ratio = mask_ratio
 
         self.masking = True if mask_ratio > 0 else False
@@ -61,8 +61,7 @@ class SummaryDataset(Dataset):
     def noise_sentence(self, document, mask_ratio, replacement_token = "<mask>"):    # 일반 mask
 
         # Create a list item and copy
-        #document_words = okt.morphs(document)
-        document_words = document.split(' ')
+        document_words = okt.morphs(document)
         document_words = document_words.copy()
         
         num_words = math.ceil(int(len(document_words) * mask_ratio))
@@ -84,7 +83,42 @@ class SummaryDataset(Dataset):
     def __getitem__(self, item):
         example = self._examples[item]
         
-        if self.related_word_mask:
+        if self.rel_flag:
+          if self.related_word_mask:
+            if self.masking :
+              src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
+                aspect=example['aspect'],
+                rel_words=' ',
+                doc=self.rel_word_noise_sentence(example['document'], example['rel_words'], self.mask_ratio),
+                bos=self.bos_token,
+                eos=self.eos_token)
+            else :
+              src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
+                aspect=example['aspect'],
+                rel_words=' ',
+                doc=example['document'],
+                bos=self.bos_token,
+                eos=self.eos_token)
+               
+          else:
+            if self.masking :
+              src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
+                aspect=example['aspect'],
+                rel_words=' ',
+                doc=self.noise_sentence(example['document'], self.mask_ratio),
+                bos=self.bos_token,
+                eos=self.eos_token)
+              
+            else:
+              src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
+                aspect=example['aspect'],
+                rel_words=' ',
+                doc=example['document'],
+                bos=self.bos_token,
+                eos=self.eos_token)
+                
+        else:
+          if self.related_word_mask:
             if self.masking :
               src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
                 aspect=example['aspect'],
@@ -99,8 +133,8 @@ class SummaryDataset(Dataset):
                 doc=example['document'],
                 bos=self.bos_token,
                 eos=self.eos_token)
-                
-        else:
+               
+          else:
             if self.masking :
               src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
                 aspect=example['aspect'],
@@ -109,15 +143,20 @@ class SummaryDataset(Dataset):
                 bos=self.bos_token,
                 eos=self.eos_token)
               
-            else :
+            else:
               src = '{bos}{aspect} : {rel_words}\n\n{doc}{eos}'.format(
                 aspect=example['aspect'],
                 rel_words=' '.join(example['rel_words']),
                 doc=example['document'],
                 bos=self.bos_token,
                 eos=self.eos_token)
+
+
                 
-        tgt = example['summary']
+        tgt = '{bos}{summary}{eos}'.format(
+          summary=example['summary'],
+          bos=self.bos_token,
+          eos=self.eos_token)
         
         input_ids = self.tokenizer(src, 
                 max_length=self.max_src_length,
